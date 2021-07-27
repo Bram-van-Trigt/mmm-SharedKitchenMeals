@@ -19,18 +19,16 @@ Module.register("mmm-SharedKitchenMeals",{
                 fadePoint: 0.25, // Start on 1/4th of the list.
                 initialLoadDelay: 2500, // 2.5 seconds delay.
                 retryDelay: 2500,
-
-                apiSearch: "http://localhost:3000/meals/API",
+                apiSearch: "http://localhost:3000/meals/API",   //To do: build based on config file
         },
 
-        // Define required scripts.
+        // Define required scripts:
         // moment.js handles time notation and timezones.
         getScripts: function() {
                 return ["moment.js"];
 
         },
 
-        // Define required scripts.
         // recipes.css is not realy in use atm
         getStyles: function() {
                 return ["recipes.css"];
@@ -46,21 +44,44 @@ Module.register("mmm-SharedKitchenMeals",{
                 this.updateTimer = null;
 
         },
-        updateRecipes: function() {
-                var self = this;
-                var d = new Date();
-                var n = d.getDay();
-                var rPage = function() { return Math.floor(Math.random() * 4); };
-                var pageNum = rPage();
-                var pRequest;
-                if (pageNum > 0) {
-                    pRequest = "&page="+pageNum;
-                } else {
-                    pRequest="&page=1";
-                }
-                var url = this.config.apiSearch /*+ "?key=" + this.config.APIkey*/;
-                self.sendSocketNotification("GET_RECIPE", {config: this.config, url: url});
-        },
+        
+        // a cleaner solution to get data from API.
+        updateRecipes: function (url, method = "GET", data = null) {
+		var url = this.config.apiSearch;
+                console.log('Started update from ' + url)
+                return new Promise(function (resolve, reject) {
+			const request = new XMLHttpRequest();
+			request.open(method, url, true);
+			request.onreadystatechange = function () {
+				if (this.readyState === 4) {
+					if (this.status === 200) {
+                                                var text = this.response
+                                                let result = text.replaceAll(/&quot;/g, '\"');
+						resolve(JSON.parse(result));
+					} else {
+						reject(request);
+                                                console.log('API request rejected');
+					}
+				}
+			};
+			request.send();
+		});
+	},
+        // updateRecipes: function() {
+        //         var self = this;
+        //         var d = new Date();
+        //         var n = d.getDay();
+        //         var rPage = function() { return Math.floor(Math.random() * 4); };
+        //         var pageNum = rPage();
+        //         var pRequest;
+        //         if (pageNum > 0) {
+        //             pRequest = "&page="+pageNum;
+        //         } else {
+        //             pRequest="&page=1";
+        //         }
+        //         var url = this.config.apiSearch /*+ "?key=" + this.config.APIkey*/;
+        //         self.sendSocketNotification("GET_RECIPE", {config: this.config, url: url});
+        // },
         
         socketNotificationReceived: function(notification, payload) {
                 if(notification === "RECIPE"){
@@ -155,3 +176,7 @@ Module.register("mmm-SharedKitchenMeals",{
                 return table;
         }
 });
+
+
+// update needs to be scheduled
+// Extend functionality to shopping list and Recipe display
