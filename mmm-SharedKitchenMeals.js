@@ -1,6 +1,7 @@
-/* MM2 Module */
+/* Magic Mirror Module Shared Kitchen */
 
-/* Module: Shared Kitchen
+/* Magic Mirror
+ * Module: Shared Kitchen
  *
  * By Bram van Trigt - https://www.linkedin.com/in/bram-van-trigt/
  * MIT Licensed.
@@ -19,17 +20,16 @@ Module.register("mmm-SharedKitchenMeals",{
                 fadePoint: 0.25, // Start on 1/4th of the list.
                 initialLoadDelay: 2500, // 2.5 seconds delay.
                 retryDelay: 2500,
-                apiSearch: "http://localhost:3000/meals/API",   //To do: build based on config file
+                apiSearch: "http://localhost:3000/meals/API",   //To do: build based on config file and user case.
         },
 
         // Define required scripts:
         // moment.js handles time notation and timezones.
         getScripts: function() {
                 return ["moment.js"];
-
         },
 
-        // recipes.css is not realy in use atm
+        // recipes.css is not realy in use atm.
         getStyles: function() {
                 return ["recipes.css"];
         },
@@ -44,81 +44,60 @@ Module.register("mmm-SharedKitchenMeals",{
                 this.updateTimer = null;
 
         },
-        
-        // a cleaner solution to get data from API.
-        updateRecipes: function (url, method = "GET", data = null) {
-		var url = this.config.apiSearch;
+                
+        // Update from website API.
+        updateFromAPI: function (url, method = "GET", data = null) {
+                var url = this.config.apiSearch;
                 console.log('Started update from ' + url)
                 return new Promise(function (resolve, reject) {
-			const request = new XMLHttpRequest();
-			request.open(method, url, true);
-			request.onreadystatechange = function () {
-				if (this.readyState === 4) {
-					if (this.status === 200) {
-                                                var text = this.response
-                                                let result = text.replaceAll(/&quot;/g, '\"');
-						resolve(JSON.parse(result));
-					} else {
-						reject(request);
-                                                console.log('API request rejected');
-					}
-				}
-			};
-			request.send();
-		});
-	},
-        // updateRecipes: function() {
-        //         var self = this;
-        //         var d = new Date();
-        //         var n = d.getDay();
-        //         var rPage = function() { return Math.floor(Math.random() * 4); };
-        //         var pageNum = rPage();
-        //         var pRequest;
-        //         if (pageNum > 0) {
-        //             pRequest = "&page="+pageNum;
-        //         } else {
-        //             pRequest="&page=1";
-        //         }
-        //         var url = this.config.apiSearch /*+ "?key=" + this.config.APIkey*/;
-        //         self.sendSocketNotification("GET_RECIPE", {config: this.config, url: url});
-        // },
-        
-        socketNotificationReceived: function(notification, payload) {
-                if(notification === "RECIPE"){
-                                this.processRecipe(payload);
-                                this.scheduleUpdate();
-                }
-                
+                        const request = new XMLHttpRequest();
+                        request.open(method, url, true);
+                        request.onreadystatechange = function () {
+                                if (this.readyState === 4) {
+                                if (this.status === 200) {
+                                        var text = this.response
+                                        let result = text.replaceAll(/&quot;/g, '\"');
+                                        resolve(JSON.parse(result));
+                                } else {
+                                        reject(request);
+                                        console.log('API request rejected');
+                                        }
+                                }
+                        };
+                        request.send();
+                });
         },
 
-        processRecipe: function(data) {
-
-                this.foodlist = [];
-                var idxCheck = [];
-                for(count=0; count < this.config.listSize; count++) {
-                    var rindex = function() {
-                        return Math.floor(Math.random() * data.recipes.length);
-                    };
-                    var rec = rindex();
-                    if (count > 0) {
-                      var c=0;
-                      while (idxCheck[c]) { 
-                        rec=rindex();
-                        if (rec === idxCheck[c]) {
-                          rec=rindex();
-                        }
-                        c++;
-                      }
-                    }
-//                  console.log("From: "+data.recipes[rec].publisher+", Name: "+data.recipes[rec].title);
-                    var titleLimit = data.recipes[rec].title.substring(0,this.config.maxTitleSize);
-                    this.foodlist.push({
-                        publisher: data.recipes[rec].publisher,
-                        namedish: titleLimit,
-                        image: data.recipes[rec].image_url
-                    });
-                    idxCheck[count]=rec;
-                }
+        // Process the recieved Json information. 
+        // Todo: Update with differnet cases.
+        processData: function(data) {
+                this.foodlist = data.meals;
+                console.log(this.foodlist);
+                // var idxCheck = [];
+                // for(count=0; count < this.config.listSize; count++) {
+                //     var rindex = function() {
+                //         return Math.floor(Math.random() * data.meals.length);
+                //     };
+                //     var rec = rindex();
+                //     if (count > 0) {
+                //       var c=0;
+                //       while (idxCheck[c]) { 
+                //         rec=rindex();
+                //         if (rec === idxCheck[c]) {
+                //           rec=rindex();
+                //         }
+                //         c++;
+                //       }
+                //     }
+                //     console.log("From: "+data.recipes[rec].publisher+", Name: "+data.recipes[rec].title);
+                //     var titleLimit = data.recipes[rec].title.substring(0,this.config.maxTitleSize);
+                //     this.foodlist.push({
+                //         publisher: data.recipes[rec].publisher,
+                //         namedish: titleLimit,
+                //         image: data.recipes[rec].image_url
+                //     });
+                //     idxCheck[count]=rec;
+                // }
                 this.loaded = true;
                 this.updateDom(this.config.animationSpeed);
         },
@@ -128,55 +107,64 @@ Module.register("mmm-SharedKitchenMeals",{
                 if (typeof delay !== "undefined" && delay >= 0) {
                         nextLoad = delay;
                 }
-
                 var self = this;
                 clearTimeout(this.updateTimer);
                 this.updateTimer = setTimeout(function() {
-                        self.updateRecipes();
+                        self.updateFromAPI()
+                            .then((data) => {
+                                // console.log(data);
+                                self.processData(data);
+                            })
+                            .catch(console.log("Update from API rejected, check availability API")) 
+                        //Todo: Resolve error and display loading, rejected on Magic Mirror Screen.
                 }, nextLoad);
         },
 
 
         // Override dom generator.
         getDom: function() {
-                var table = document.createElement("table");
-                table.className = "small";
-                for (var l in this.foodlist) {
-                        var food = this.foodlist[l];
-                        var row = document.createElement("tr");
-                        table.appendChild(row);
+                var wrapper = document.createElement("div");
+                wrapper.innerHTML = this.foodlist;
+                return wrapper;
 
-                        var imgCell = document.createElement("td");
-                        var img = "<img src='" + food.image + "' height='50' width='50'>";
-                        imgCell.innerHTML = img;
-                        row.appendChild(imgCell);
+        //         var table = document.createElement("table");
+        //         table.className = "small";
+        //         for (var l in this.foodlist) {
+        //                 var food = this.foodlist[l];
+        //                 var row = document.createElement("tr");
+        //                 table.appendChild(row);
 
-                        var dishCell = document.createElement("td");
-                        dishCell.className = "name";
-                        dishCell.innerHTML = food.namedish;
-                        row.appendChild(dishCell);
+        //                 var imgCell = document.createElement("td");
+        //                 var img = "<img src='" + food.image + "' height='50' width='50'>";
+        //                 imgCell.innerHTML = img;
+        //                 row.appendChild(imgCell);
 
-                        var pubCell = document.createElement("td");
-                        pubCell.innerHTML = food.publisher;
-                        row.appendChild(pubCell);
+        //                 var dishCell = document.createElement("td");
+        //                 dishCell.className = "name";
+        //                 dishCell.innerHTML = food.namedish;
+        //                 row.appendChild(dishCell);
 
-                        if (this.config.fade && this.config.fadePoint < 1) {
-                                if (this.config.fadePoint < 0) {
-                                        this.config.fadePoint = 0;
-                                }
-                                var startingPoint = this.foodlist.length * this.config.fadePoint;
-                                var steps = this.foodlist.length - startingPoint;
-                                if (l >= startingPoint) {
-                                        var currentStep = l - startingPoint;
-                                        row.style.opacity = 1 - (1 / steps * currentStep);
-                                }
-                        }
+        //                 var pubCell = document.createElement("td");
+        //                 pubCell.innerHTML = food.publisher;
+        //                 row.appendChild(pubCell);
+
+        //                 if (this.config.fade && this.config.fadePoint < 1) {
+        //                         if (this.config.fadePoint < 0) {
+        //                                 this.config.fadePoint = 0;
+        //                         }
+        //                         var startingPoint = this.foodlist.length * this.config.fadePoint;
+        //                         var steps = this.foodlist.length - startingPoint;
+        //                         if (l >= startingPoint) {
+        //                                 var currentStep = l - startingPoint;
+        //                                 row.style.opacity = 1 - (1 / steps * currentStep);
+        //                         }
+        //                 }
                     
-                }
-                return table;
+        //         }
+        //         return table;
         }
 });
 
 
 // update needs to be scheduled
-// Extend functionality to shopping list and Recipe display
+// Extend functionality to shopping list and Recipe display, can be done with cases see Weather module functionality.

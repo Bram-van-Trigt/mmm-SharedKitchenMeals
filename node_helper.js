@@ -8,22 +8,25 @@ module.exports = NodeHelper.create({
                 console.log("Starting node helper: " + this.name);
         },
 
-        socketNotificationReceived: function(notification, payload) {
-                var self = this;
-                console.log("Downloading available meals with signal: " + notification + " From URL: " + payload.url);
-
-                if(notification === "GET_RECIPE"){
-
-                        var recipeJsonUri = payload.url;
-
-                        request(recipeJsonUri, function (error, response, body) {
-                                if (!error && response.statusCode == 200) {
-                                        console.log(body);
-                                        self.sendSocketNotification("RECIPE", JSON.parse(body));
-                                }
-                        });
-
-                }
-
-        },
+        updateAPI: function (url, method = "GET", data = null) {
+                var url = this.config.apiSearch;
+                        console.log('Started update from ' + url)
+                        return new Promise(function (resolve, reject) {
+                    const request = new XMLHttpRequest();
+                    request.open(method, url, true);
+                    request.onreadystatechange = function () {
+                        if (this.readyState === 4) {
+                            if (this.status === 200) {
+                                var text = this.response
+                                let result = text.replaceAll(/&quot;/g, '\"');
+                                resolve(JSON.parse(result));
+                            } else {
+                                reject(request);
+                                console.log('API request rejected');
+                            }
+                        }
+                    };
+                    request.send();
+                });
+        }
 });
