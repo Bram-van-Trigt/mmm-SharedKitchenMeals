@@ -1,0 +1,16 @@
+/* In this css file the lay-out of shared kitchen module is configured. */
+
+.myMeals .name {
+  padding-top: 7px;
+  padding-left: 0px;
+  padding-right: 15px;
+}
+
+.myMeals .prep {
+  font-size: 75%;
+}
+
+.myMeals .desc {
+  font-size: 75%;
+  font-style: italic;
+}

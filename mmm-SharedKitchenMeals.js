@@ -29,9 +29,9 @@ Module.register("mmm-SharedKitchenMeals",{
                 return ["moment.js"];
         },
 
-        // recipes.css is not realy in use atm.
+        //  css stylesheets are used for styling of this MM-module.
         getStyles: function() {
-                return ["recipes.css"];
+                return ["myMealsStyle.css"];
         },
 
         // Define start sequence.
@@ -69,35 +69,10 @@ Module.register("mmm-SharedKitchenMeals",{
         },
 
         // Process the recieved Json information. 
-        // Todo: Update with differnet cases.
+        // Todo: Update with different use cases.
         processData: function(data) {
-                this.foodlist = data.meals;
-                console.log(this.foodlist);
-                // var idxCheck = [];
-                // for(count=0; count < this.config.listSize; count++) {
-                //     var rindex = function() {
-                //         return Math.floor(Math.random() * data.meals.length);
-                //     };
-                //     var rec = rindex();
-                //     if (count > 0) {
-                //       var c=0;
-                //       while (idxCheck[c]) { 
-                //         rec=rindex();
-                //         if (rec === idxCheck[c]) {
-                //           rec=rindex();
-                //         }
-                //         c++;
-                //       }
-                //     }
-                //     console.log("From: "+data.recipes[rec].publisher+", Name: "+data.recipes[rec].title);
-                //     var titleLimit = data.recipes[rec].title.substring(0,this.config.maxTitleSize);
-                //     this.foodlist.push({
-                //         publisher: data.recipes[rec].publisher,
-                //         namedish: titleLimit,
-                //         image: data.recipes[rec].image_url
-                //     });
-                //     idxCheck[count]=rec;
-                // }
+                this.myMeals = data.meals;
+                console.log(this.myMeals);
                 this.loaded = true;
                 this.updateDom(this.config.animationSpeed);
         },
@@ -120,48 +95,54 @@ Module.register("mmm-SharedKitchenMeals",{
                 }, nextLoad);
         },
 
-
+        //todo: implement different use cases.
         // Override dom generator.
         getDom: function() {
-                var wrapper = document.createElement("div");
-                wrapper.innerHTML = this.foodlist;
-                return wrapper;
+                
+                var table = document.createElement("mealsTable");
+                // table.style = "myMealsStyle.css"
+                table.className = "myMeals";
+                
 
-        //         var table = document.createElement("table");
-        //         table.className = "small";
-        //         for (var l in this.foodlist) {
-        //                 var food = this.foodlist[l];
-        //                 var row = document.createElement("tr");
-        //                 table.appendChild(row);
+                for (var l in this.myMeals) {
+                        var food = this.myMeals[l];
+                        var row = document.createElement("tr");
+                        table.appendChild(row);
 
-        //                 var imgCell = document.createElement("td");
-        //                 var img = "<img src='" + food.image + "' height='50' width='50'>";
-        //                 imgCell.innerHTML = img;
-        //                 row.appendChild(imgCell);
+                        var mealCell = document.createElement("td");
+                        mealCell.className = "name";
+                        mealCell.innerHTML = food.recipeName;
+                        row.appendChild(mealCell);
 
-        //                 var dishCell = document.createElement("td");
-        //                 dishCell.className = "name";
-        //                 dishCell.innerHTML = food.namedish;
-        //                 row.appendChild(dishCell);
+                        var timeCell = document.createElement("td");
+                        timeCell.className = "prep"
+                        timeCell.innerHTML = "prep: " + food.preperationTime + "min & cook: " + food.cookingTime;
+                        row.appendChild(timeCell);
 
-        //                 var pubCell = document.createElement("td");
-        //                 pubCell.innerHTML = food.publisher;
-        //                 row.appendChild(pubCell);
+                        var row = document.createElement("tr");
+                        table.appendChild(row);
 
-        //                 if (this.config.fade && this.config.fadePoint < 1) {
-        //                         if (this.config.fadePoint < 0) {
-        //                                 this.config.fadePoint = 0;
-        //                         }
-        //                         var startingPoint = this.foodlist.length * this.config.fadePoint;
-        //                         var steps = this.foodlist.length - startingPoint;
-        //                         if (l >= startingPoint) {
-        //                                 var currentStep = l - startingPoint;
-        //                                 row.style.opacity = 1 - (1 / steps * currentStep);
-        //                         }
-        //                 }
+                        var DescCell = document.createElement("td");
+                        DescCell.colSpan = 2
+                        DescCell.className = "desc";
+                        DescCell.innerHTML = food.description;
+                        row.appendChild(DescCell);
+
+                        //todo: change the fade to start from a lower row
+                        // if (this.config.fade && this.config.fadePoint < 1) {
+                        //         if (this.config.fadePoint < 0) {
+                        //                 this.config.fadePoint = 0;
+                        //         }
+                        //         var startingPoint = this.foodlist.length * this.config.fadePoint;
+                        //         var steps = this.foodlist.length - startingPoint;
+                        //         if (l >= startingPoint) {
+                        //                 var currentStep = l - startingPoint;
+                        //                 row.style.opacity = 1 - (1 / steps * currentStep);
+                        //         }
+                        // }
                     
-        //         }
-        //         return table;
+                }
+                return table;
         }
 });
 
