@@ -71,8 +71,8 @@ Module.register("mmm-SharedKitchenMeals",{
         // Process the recieved Json information. 
         // Todo: Update with different use cases.
         processData: function(data) {
-                this.myMeals = data.meals;
-                console.log(this.myMeals);
+                this.myMeals = data;
+                console.log(data);
                 this.loaded = true;
                 this.updateDom(this.config.animationSpeed);
         },
@@ -97,13 +97,18 @@ Module.register("mmm-SharedKitchenMeals",{
 
         //todo: implement different use cases.
         // Override dom generator.
-        getDom: function() {
-                
+        getDom: function() {              
                 var table = document.createElement("mealsTable");
-                // table.style = "myMealsStyle.css"
                 table.className = "myMeals";
-                
+                var row = document.createElement("tr");
+                table.appendChild(row);
 
+                var headerCell = document.createElement("th"); //todo: add food symbol to header
+                        headerCell.className = "header";
+                        headerCell.innerHTML = "AVAILABLE MEALS";
+                        headerCell.colSpan = 3;
+                        row.appendChild(headerCell);
+                
                 for (var l in this.myMeals) {
                         var food = this.myMeals[l];
                         var row = document.createElement("tr");
@@ -114,32 +119,38 @@ Module.register("mmm-SharedKitchenMeals",{
                         mealCell.innerHTML = food.recipeName;
                         row.appendChild(mealCell);
 
-                        var timeCell = document.createElement("td");
-                        timeCell.className = "prep"
-                        timeCell.innerHTML = "prep: " + food.preperationTime + "min & cook: " + food.cookingTime;
-                        row.appendChild(timeCell);
+                        var prepTimeCell = document.createElement("td");
+                        prepTimeCell.className = "prepTime";
+                        prepTimeCell.innerHTML = "prep: " + food.preperationTime + "min";
+                        row.appendChild(prepTimeCell);
 
+                        var cookTimeCell = document.createElement("td");
+                        cookTimeCell.className = "cookTime";
+                        cookTimeCell.innerHTML = "cook: " + food.cookingTime + "min";
+                        row.appendChild(cookTimeCell);
+
+                        // Recipe description is placed in row below name and time.
                         var row = document.createElement("tr");
                         table.appendChild(row);
-
+                        
                         var DescCell = document.createElement("td");
-                        DescCell.colSpan = 2
                         DescCell.className = "desc";
                         DescCell.innerHTML = food.description;
+                        DescCell.colSpan = 3;
                         row.appendChild(DescCell);
 
                         //todo: change the fade to start from a lower row
-                        // if (this.config.fade && this.config.fadePoint < 1) {
-                        //         if (this.config.fadePoint < 0) {
-                        //                 this.config.fadePoint = 0;
-                        //         }
-                        //         var startingPoint = this.foodlist.length * this.config.fadePoint;
-                        //         var steps = this.foodlist.length - startingPoint;
-                        //         if (l >= startingPoint) {
-                        //                 var currentStep = l - startingPoint;
-                        //                 row.style.opacity = 1 - (1 / steps * currentStep);
-                        //         }
-                        // }
+                        if (this.config.fade && this.config.fadePoint < 1) {
+                                if (this.config.fadePoint < 0) {
+                                        this.config.fadePoint = 0;
+                                }
+                                var startingPoint = this.foodlist.length * this.config.fadePoint;
+                                var steps = this.foodlist.length - startingPoint;
+                                if (l >= startingPoint) {
+                                        var currentStep = l - startingPoint;
+                                        row.style.opacity = 1 - (1 / steps * currentStep);
+                                }
+                        }
                     
                 }
                 return table;
