@@ -116,17 +116,17 @@ Module.register("mmm-SharedKitchenMeals",{
 
                         var mealCell = document.createElement("td");
                         mealCell.className = "name";
-                        mealCell.innerHTML = food.recipeName;
+                        mealCell.innerHTML = food.recipeRef.recipeName;
                         row.appendChild(mealCell);
 
                         var prepTimeCell = document.createElement("td");
                         prepTimeCell.className = "prepTime";
-                        prepTimeCell.innerHTML = "prep: " + food.preperationTime + "min";
+                        prepTimeCell.innerHTML = "prep: " + food.recipeRef.preperationTime + "min";
                         row.appendChild(prepTimeCell);
 
                         var cookTimeCell = document.createElement("td");
                         cookTimeCell.className = "cookTime";
-                        cookTimeCell.innerHTML = "cook: " + food.cookingTime + "min";
+                        cookTimeCell.innerHTML = "cook: " + food.recipeRef.cookingTime + "min";
                         row.appendChild(cookTimeCell);
 
                         // Recipe description is placed in row below name and time.
@@ -135,7 +135,7 @@ Module.register("mmm-SharedKitchenMeals",{
                         
                         var DescCell = document.createElement("td");
                         DescCell.className = "desc";
-                        DescCell.innerHTML = food.description;
+                        DescCell.innerHTML = food.recipeRef.description;
                         DescCell.colSpan = 3;
                         row.appendChild(DescCell);
 
